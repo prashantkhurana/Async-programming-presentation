@@ -1,49 +1,377 @@
 <!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<html lang="en">
 
-		<title>reveal.js</title>
+<head>
+	<meta charset="utf-8">
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+	<title>REST, RPC, Async, Netty, Grpc, Futures</title>
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+	<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+	<meta name="author" content="Hakim El Hattab">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<link rel="stylesheet" href="css/reveal.css">
+	<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+	<!-- Theme used for syntax highlighting of code -->
+	<link rel="stylesheet" href="lib/css/zenburn.css">
+
+	<!-- Printing and PDF exports -->
+	<script>
+		var link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.type = 'text/css';
+		link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+		document.getElementsByTagName('head')[0].appendChild(link);
+	</script>
+
+	<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+
+	<div class="reveal">
+
+		<!-- Any section element inside of this container is displayed as a slide -->
+		<div class="slides">
+			<section tagcloud>
+				REST 
+				RPC 
+				Async 
+				Netty 
+				Grpc 
+				Event-driven 
+				Reactive-Programming 
+				Futures 
+			</section>
+			<section>
+				<h2>How to communicate between client and server</h2>
+				<!-- <h3>The HTML Presentation Framework</h3>
+					<p>
+						<small>Created by <a href="http://hakim.se">Hakim El Hattab</a> and <a href="https://github.com/hakimel/reveal.js/graphs/contributors">contributors</a></small>
+					</p> -->
+			</section>
+
+			<section>
+				<section>
+					<p>Communication Protocols</p>
+				</section>
+				<section>
+					<h2>REST : Representational state transfer</h2>
+					<p class="fragment">Transfer of state via GET, PUT, PATCH, etc</p>
+					<aside class="notes">
+						http://etherealbits.com/2012/12/debunking-the-myths-of-rpc-rest/ 
+						
+						You might want to have a look at this article by Netflix
+						about their API redesign: http://techblog.netflix.com/2012/07/embracing-differences-inside-netflix.html TL;DR: REST
+						in general causes chatty APIs: if an operation needs to manipulate multiple resources, you will need multiple calls
+						(ie. slow!) One API doesn't map well to different consumers, which is why Netflix is shifting some of the client code
+						over to the server: each consumer can provide its own adapter / orchestration layer on the server to optimize API access
+						to the different consumers.
+						
+						I call an endpoint like this RESTful: GET /user/1234/comments. But this is not: GET /comments?user_id=1234
+
+					</aside>
+				</section>
+				<section>
+					<h2>RPC - Remote procedure call</h2>
+					<p class="fragment">Think in terms of actions using GET and PUT</p>
+				</section>
+				<section>
+					<p>Example</p>
+					<table style="overflow: auto; font-size: 70%">
+						<thead>
+						  <tr class="fragment">
+							<th>Operation</th>
+							<th>RPC (operation)</th>
+							<th>REST (resource)</th>
+						  </tr>
+						</thead>
+						<tbody>
+						  <tr class="fragment">
+							<td>Signup</td>
+							<td>POST /signup</td>
+							<td>POST /persons</td>
+						  </tr>
+						  <tr class="fragment">
+							<td>Read a person</td>
+							<td>GET /readPerson?personid=1234</td>
+							<td>GET /persons/1234</td>
+						  </tr>
+						  <tr class="fragment" >
+							<td>Read a person’s items list</td>
+							<td>GET /readUsersItemsList?userid=1234</td>
+							<td>GET /persons/1234/items</td>
+						  </tr>
+						  <tr class="fragment">
+							<td>Add an item to a person’s list</td>
+							<td>POST /addItemToUsersItemsList</td>
+							<td>POST /persons/1234/items</td>
+						  </tr>
+						  <tr class="fragment">
+							<td>Update an item</td>
+							<td>POST /modifyItem</td>
+							<td>PUT /items/456</td>
+						  </tr>
+						  <tr class="fragment">
+							<td>Delete an item</td>
+							<td>POST /removeItem?itemId=456</td>
+							<td>DELETE /items/456</td>
+						  </tr>
+						</tbody>
+					  </table>
+				</section>
+
+			</section>
+
+			<section>
+				<section>
+						<p>Communicate Synchronously or Async</p>
+				</section>
+				<section>
+					<h2>Spring's <a href="https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/client/RestTemplate.html">RestTemplate</a> </h2>
+					<p>Spring's central class for synchronous client-side HTTP access. It simplifies communication with HTTP servers, and enforces RESTful principles.</p>
+				</section>
+				<section>
+					<h2>Asynchronous</h2>
+				</section>
+				<section>
+						<p>Javascript callbacks, promises, etc</p>
+						<aside class="notes">https://stackoverflow.com/questions/6133574/how-to-articulate-the-difference-between-asynchronous-and-parallel-programming</aside>
+						<pre><code>
+// Say "Hello."
+console.log("Hello.");
+// Say "Goodbye" two seconds from now.
+setTimeout(function() {
+	console.log("Goodbye!"); 
+}, 2000); 
+// Say "Hello again!" 
+console.log("Hello again!");
+						</code></pre>
+						</section>
+						<section>
+						<p>java.nio library, futures, threads, etc</p>
+						<pre>
+							<code>
+CompletableFuture.supplyAsync(this::findReceiver)
+.thenApply(this::sendMsg)
+.thenAccept(this::notify);
+							</code>
+						</pre>
+				</section>
+
+			</section>
+
+			<section>
+				<section>
+						<h2>How does asynchronous programming work </h2>
+				</section>
+				<section>
+					<h2>Observer Pattern/ Listeners/ Reactive programming</h2>
+				</section>
+				<section>
+					<p>We create a task and subscribe ourselves as observers to the success/failure/error etc of the task. </p>
+					<br>
+					<p>When the task ends, methods(onSuccess(), onError()) of registered observers are called. </p>
+					<pre>
+						<code>
+for( i = 0; i < observers.Count; i++) {
+	observers[i].onSuccess("some data");
+}
+						</code>
+					</pre>
+				</section>
+			</section>
+
+			<section>
+				<section>Combining RPC and async programming with gRPC</section>
+				<section>
+					<p>Blocking Call</p>
+<pre><code>
+// Obtains the feature at a given position.
+
+rpc GetFeature(Point) returns (Feature) {}
+</code></pre>
+</section>
+<section>
+	<p>Client</p>
+<pre><code data-trim data-noescape>
+/**
+* Blocking unary call example. 
+  Calls getFeature and prints the response.
+*/
+public void getFeature(int lat, int lon) {
+	info("*** GetFeature: lat={0} lon={1}", lat, lon);
+
+	Point request = Point.newBuilder()
+	.setLatitude(lat)
+	.setLongitude(lon)
+	.build();
+
+	Feature feature = <mark>blockingStub</mark>.getFeature(request);
+}
+</code></pre>
+</section>
+<section>
+<p>Server</p>
+<p>receives an observer as if this was a non blocking call.</p>
+<pre><code data-trim data-noescape>
+public void getFeature(Point Point, StreamObserver<Feature> responseObserver) {
+		responseObserver.onNext(getFeatureFor(point));
+		responseObserver.onCompleted();
+		}
+</code></pre>
+</section>
+<section>
+	<p>Networking Library ensures the call is blocking. </p>
+	<pre><code>
+ListenableFuture responseFuture = futureUnaryCall(call, param);
+
+while(!responseFuture.isDone()) {
+	try {
+		executor.waitAndDrain();
+	} catch (InterruptedException var8) {
+		Thread.currentThread().interrupt();
+		throw Status.CANCELLED.withDescription("Call was interrupted").withCause(var8).asRuntimeException();
+	}
+}
+
+return getUnchecked(responseFuture);
+	</code></pre>
+</section>
+				
+			</section>
+
+			<section>
+				<section>
+					<p>Streaming Async call </p>
+<pre><code>
+// Accepts a stream of Points on a route being traversed, returning a
+// RouteSummary when traversal is completed.
+rpc RecordRoute(stream Point) returns (RouteSummary) {}
+</code></pre>
+				</section>
+				<section>
+					<p>Client</p>
+<p>Send an observer for response </p>
+<pre><code>
+StreamObserver<Point> requestObserver = asyncStub.recordRoute(responseObserver);
+</code></pre>
+<p>Send points on the received observer</p>
+<pre><code data-trim data-noescape>
+for (int i = 0; i < numPoints; ++i) {
+	int index = random.nextInt(features.size());
+	Point point = features.get(index).getLocation();
+	<mark>requestObserver.onNext(point);</mark>	
+	// Sleep for a bit before sending the next one.
+	Thread.sleep(random.nextInt(1000) + 500);
+	}
+</code></pre>
+				</section>
+				<section>
+					<p>Server</p>
+<pre><code data-trim data-noescape style="max-height: 100%">
+@Override
+public StreamObserver<Point> recordRoute(final StreamObserver<RouteSummary> responseObserver) {
+	return new StreamObserver<Point>() {
+	int pointCount;
+	int distance;
+	Point previous;
+	final long startTime = System.nanoTime();
+
+	@Override
+	public void onNext(Point point) {
+		pointCount++;
+		// For each point after the first, add the incremental distance from the previous point to
+		// the total distance value.
+		if (previous != null) {
+		distance += calcDistance(previous, point);
+		}
+		previous = point;
+	}
+
+	@Override
+	public void onCompleted() {
+		long seconds = NANOSECONDS.toSeconds(System.nanoTime() - startTime);
+		responseObserver.onNext(RouteSummary.newBuilder().setPointCount(pointCount)
+				.setDistance(distance)
+				.setElapsedTime((int) seconds).build());
+		responseObserver.onCompleted();
+	}
+	};
+}
+</code></pre>
+				</section>
+			</section>
+
+			<section>
+				<h1>What did we learn ?</h1>
+				<ul>
+					<li>Which protocols can machines use to communicate : REST and RPC</li>
+					<li>Async programming/reactive programming is nothing but observer pattern underneath</li>
+				</ul>
+			</section>
+
+			<section>
+				<section>
+						<p>We saw in previous examples that server received an observer which it calls methods on to send data/status/error</p>
+				</section>
+				<section>
+					<p>How can one machine calling methods on an object result to methods being called on another object sitting on another machine.</p>
+					<p>Or how is this observer java object shared?</p>
+				</section>
+			</section>
+
+			<section>
+				<h1>Netty</h1>
+				<p>gRPC uses netty under the hood.</p>
+				<aside class="notes">http://seeallhearall.blogspot.com/2012/05/netty-tutorial-part-1-introduction-to.html
+						https://stackoverflow.com/questions/29051809/is-a-deserialised-object-the-same-instance-as-the-original
+						https://softwareengineering.stackexchange.com/questions/332438/when-to-use-future-vs-listener
+				</aside>
+			</section>
+
 		</div>
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+	</div>
 
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+	<script src="lib/js/head.min.js"></script>
+	<script src="js/reveal.js"></script>
+
+	<script>
+
+		// More info https://github.com/hakimel/reveal.js#configuration
+		Reveal.initialize({
+			controls: true,
+			progress: true,
+			history: true,
+			center: true,
+			 width: '80%',
+			 height :'100%',
+
+			transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+			// More info https://github.com/hakimel/reveal.js#dependencies
+			dependencies: [
+				{ src: 'lib/js/classList.js', condition: function () { return !document.body.classList; } },
+				{ src: 'plugin/markdown/marked.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+				{ src: 'plugin/markdown/markdown.js', condition: function () { return !!document.querySelector('[data-markdown]'); } },
+				{ src: 'plugin/highlight/highlight.js', async: true, callback: function () { hljs.initHighlightingOnLoad(); } },
+				{ src: 'plugin/search/search.js', async: true },
+				{ src: 'plugin/zoom-js/zoom.js', async: true },
+				{ src: 'plugin/notes/notes.js', async: true },
+				{ src: 'plugin/tagcloud/tagcloud.js', async: true }
+			]
+		});
+
+	</script>
+
+</body>
+
 </html>
