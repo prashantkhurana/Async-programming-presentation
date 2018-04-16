@@ -1,4 +1,4 @@
-# Demystifying async prograaming
+# Demystifying async programming
 
 A talk which dives into internals of async programming.
 
